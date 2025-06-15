@@ -38,8 +38,8 @@ for sw in range(max_sw + 1):
 # Backward DP
 policy = np.empty((T, max_sw + 1, max_sb + 1), dtype=object)
 
-for t in reversed(range(T)):    # t = 10 → 0
-    print(f"\n+ At {20 - t} o'clock ({t} time steps remaining): ")
+for t in reversed(range(T)):    # t: 10 → 0
+    # print(f"\n+ At {20 - t} o'clock ({t} time steps remaining): ")
     for sw in range(max_sw + 1):
         for sb in range(max_sb + 1):
             best_val = -float('inf')
@@ -72,19 +72,27 @@ for t in reversed(range(T)):    # t = 10 → 0
             V[t][sw][sb] = best_val
             policy[t][sw][sb] = best_act
             # print("\n")
-    print("t = " + str(t) + '; sw = ' + str(sw) + '; sb = ' + str(sb))
-    print("V_best = ", V[t][sw][sb])
-    print("Policy_best = ", policy[t][sw][sb])
-    print("\n")
+    # print("t = " + str(t) + '; sw = ' + str(sw) + '; sb = ' + str(sb))
+    # print("V_best = ", V[t][sw][sb])
+    # print("Policy_best = ", policy[t][sw][sb])
+    # print("\n")
             # print('++++++Best action to do at time t = ' + str(t) + ': ' + policy[t])
 
 
+# (a)**** The optimal policy
+print("------------------------------------------")
+print("OPTIMAL POLICY:")
+Utils.print_optimal_policy_deterministic(policy, V, T, max_sb, max_sw)
 
-# print("\n------------------------------------------")
-# print('V_opt_start = ', V[0][0][0])
-# print('Policy: ', policy)
-Utils.print_optimal_policy_deterministic(policy, V, T)
+# (b)**** V_pi* [0][0][0]: Value function of optimal policy at start (t = 0, sw = 0, sb = 0)
+print("------------------------------------------")
+print("V_pi* at start V_pi*[0][0][0]: ", V[0][0][0])
+
+# (c)**** Possibility of having a perfect day at the beach when follow the optimal policy
+print("------------------------------------------")
+Simulate.simulate(policy, V, T, swim_success, sun_success, 10_000)
+
 # Utils.print_optimal_policy_randomly(policy, V, T, swim_success, sun_success)
-print("\n----------------Simulate perfect day applying random approach------------------")
-Simulate.simulate(policy, V, T, swim_success, sun_success, 1000)
+# print("\n----------------Simulate perfect day applying random approach------------------")
+# Simulate.simulate(policy, V, T, swim_success, sun_success, 1000)
 

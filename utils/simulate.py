@@ -8,7 +8,7 @@ class Simulate:
             t = 0
             while t < max_time:
                 action = policy[t][sw][sb]
-                print(f"Hour {10 + t}: Do action {action}, (sw={sw}, sb={sb}) → V = {V[t][sw][sb]:.2f}")
+                # print(f"Hour {10 + t}: Do action {action}, (sw={sw}, sb={sb}) → V = {V[t][sw][sb]:.2f}")
                 if action == 'SW':
                     if np.random.rand() < swim_success[t]:
                         sw += 1
@@ -18,8 +18,9 @@ class Simulate:
                 t += 1
             # print(f"End of day state: SW={sw}, SB={sb}")
             if sw >= 2 and sb >= 2:
-                print("🎉 Perfect day achieved/\n")
+                # print("🎉 Perfect day achieved/\n")
                 perfect_days += 1
-            else:
-                print("❌ Imperfect day. Penalty applied.\n")
+            # else:
+            #     print("❌ Imperfect day. Penalty applied.\n")
         print(f"\nPerfect days: {perfect_days} out of {num_runs}")
+        print(f"The possibility of having a perfect day if follow the policy is {perfect_days / num_runs}")

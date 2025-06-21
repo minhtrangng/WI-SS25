@@ -24,15 +24,17 @@ class IllustratePolicy:
 
             if action == "SW":
                 add_node(t+1, min(sw+1, max_sw), sb, path + "S")
-                dot.edge(node_id, f"{t+1}_{min(sw+1, max_sw)}_{sb}", label="succ")
+                dot.edge(node_id, f"{t+1}_{min(sw+1, max_sw)}_{sb}", label="✅")
                 add_node(t+1, sw, sb, path + "s")
-                dot.edge(node_id, f"{t+1}_{sw}_{sb}", label="fail")
+                # dot.edge(node_id, f"{t+1}_{sw}_{sb}", label=r"fail")
+                dot.edge(node_id, f"{t + 1}_{sw}_{sb}", label="❌")
 
             elif action == "SB":
                 add_node(t + 1, sw, min(sb + 1, max_sb), path + "B")
-                dot.edge(node_id, f"{t + 1}_{sw}_{min(sb + 1, max_sb)}", label="succ")
+                dot.edge(node_id, f"{t + 1}_{sw}_{min(sb + 1, max_sb)}", label="✅")
                 add_node(t + 1, sw, sb, path + "b")
-                dot.edge(node_id, f"{t + 1}_{sw}_{sb}", label="fail")
+                # dot.edge(node_id, f"{t + 1}_{sw}_{sb}", label=r"fail")
+                dot.edge(node_id, f"{t + 1}_{sw}_{sb}", label="❌")
 
             elif action == "B":
                 add_node(t + 1, sw, sb, path + "E")
@@ -75,8 +77,8 @@ class IllustratePolicy:
                 sw_succ = min(sw + 1, max_sw)
                 next_succ = add_state(t + 1, sw_succ, sb)
                 next_fail = add_state(t + 1, sw, sb)
-                dot.edge(current_node, next_succ, label=f"SW ✓ ({p})")
-                dot.edge(current_node, next_fail, label=f"SW ✗ ({1 - p})")
+                dot.edge(current_node, next_succ, label=f"SW ✅ ({p})")
+                dot.edge(current_node, next_fail, label=f"SW ❌ ({1 - p})")
                 recurse(t + 1, sw_succ, sb)
                 recurse(t + 1, sw, sb)
             elif action == "SB":
@@ -84,8 +86,8 @@ class IllustratePolicy:
                 sb_succ = min(sb + 1, max_sb)
                 next_succ = add_state(t + 1, sw, sb_succ)
                 next_fail = add_state(t + 1, sw, sb)
-                dot.edge(current_node, next_succ, label=f"SB ✓ ({p})")
-                dot.edge(current_node, next_fail, label=f"SB ✗ ({1 - p})")
+                dot.edge(current_node, next_succ, label=f"SB ✅ ({p})")
+                dot.edge(current_node, next_fail, label=f"SB ❌ ({1 - p})")
                 recurse(t + 1, sw, sb_succ)
                 recurse(t + 1, sw, sb)
 

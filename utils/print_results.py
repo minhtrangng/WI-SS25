@@ -1,6 +1,6 @@
 import numpy as np
 
-class Utils:
+class PrintResults:
     def __init__(self, policy, V, max_time, max_sw, max_sb, swim_success_prob, sunbathing_success_prob):
         self.policy = policy
         self.V = V

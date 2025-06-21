@@ -1,5 +1,5 @@
 import numpy as np
-from utils.print_results import Utils
+from utils.print_results import PrintResults
 from utils.simulate import Simulate
 from algorithm.backward_dp import BackwardDP
 from utils.illustrate_policy import IllustratePolicy
@@ -46,7 +46,7 @@ backward_alg.compute_value_functions()
 # (a)**** The optimal policy
 print("------------------------------------------")
 print("OPTIMAL POLICY:")
-print_result = Utils(policy=policy, V=V, max_time=T, max_sw=max_sw, max_sb=max_sb, swim_success_prob=swim_success, sunbathing_success_prob=sun_success)
+print_result = PrintResults(policy=policy, V=V, max_time=T, max_sw=max_sw, max_sb=max_sb, swim_success_prob=swim_success, sunbathing_success_prob=sun_success)
 print_result.print_optimal_policy_deterministic()
 
 # (b)**** V_pi* [0][0][0]: Value function of optimal policy at start (t = 0, sw = 0, sb = 0)
@@ -60,10 +60,10 @@ test_optimal_policy.simulate()
 
 # (d)**** Illustrate policy
 illustrate = IllustratePolicy(policy=policy)
-# policy_tree = illustrate.visualize_policy_tree(max_depth=5, max_sw=max_sw, max_sb=max_sb)
-# policy_tree.render('sub_optimal_policy_tree', format='png', cleanup=False)
+policy_tree = illustrate.visualize_policy_tree(max_depth=5, max_sw=max_sw, max_sb=max_sb)
+policy_tree.render('sub_optimal_policy_tree', format='png', cleanup=True)
 policy_tree = illustrate.visualize_full_policy_tree(swim_success=swim_success, sun_success=sun_success)
-policy_tree.render('full_optimal_policy_tree', format='png', cleanup=False)
+policy_tree.render('full_optimal_policy_tree', format='png', cleanup=True)
 
 
 # Utils.print_optimal_policy_randomly(policy, V, T, swim_success, sun_success)

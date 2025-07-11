@@ -17,7 +17,7 @@ class EinTagAmSeeKorrekt:
         self.min_baden = 2
         self.min_sonnen = 2
         self.strafe_nicht_perfekt = -100
-        self.belohnung_perfekt = 20
+        self.belohnung_perfekt = 0
 
         # Realistische Obergrenze für erfolgreiche Aktionen
         self.max_realistic = 7

@@ -1,4 +1,5 @@
 import random
+from graphviz import Digraph
 
 class EinTagAmSeeKorrekt:
     def __init__(self):
@@ -10,14 +11,17 @@ class EinTagAmSeeKorrekt:
         self.p_B = [0.05, 0.05, 0.10, 0.15, 0.20, 0.20, 0.25, 0.25, 0.25, 0.15, 0.10]
         self.p_S = [0.15, 0.25, 0.30, 0.35, 0.35, 0.30, 0.20, 0.10, 0.05, 0, 0]
 
+        #self.p_B = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.3, 0.25, 0.2, 0.15]
+        #self.p_S = [0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15]
+
         # Belohnungen
         self.rewards = {"B": 10, "S": 5, "I": 5}
 
         # Perfekter Tag Bedingungen
         self.min_baden = 2
         self.min_sonnen = 2
-        self.strafe_nicht_perfekt = -100
-        self.belohnung_perfekt = 20
+        self.strafe_nicht_perfekt = -100    # zum Experimentieren
+        self.belohnung_perfekt = 0          # zum Experimentieren
 
         # Realistische Obergrenze für erfolgreiche Aktionen
         self.max_realistic = 7
@@ -262,6 +266,136 @@ class EinTagAmSeeKorrekt:
                 value = self.V[t][state]
                 print(f"{hour}:00 Uhr - Aktion: {action} (Wert: {value:.2f})")
 
+    def visualize_full_policy_tree(self, filename="full_optimal_policy_tree"):
+        """
+        Erstellt eine vollständige Visualisierung des optimalen Policy-Baums
+        mit tatsächlichen Uhrzeiten statt t-Werten
+        """
+        dot = Digraph(comment="Full Optimal Policy Tree")
+        dot.attr(rankdir='TB', size='16,20', dpi='300')
+        dot.attr('node', shape='circle', style='filled', fontsize='10')
+        dot.attr('edge', fontsize='8')
+
+        visited = set()
+
+        # Farbschema für Aktionen
+        action_colors = {
+            'B': '#87CEEB',  # Hellblau für Baden
+            'S': '#FFD700',  # Gold für Sonnen
+            'I': '#98FB98'  # Hellgrün für Imbiss
+        }
+
+        def get_hour_from_t(t):
+            """Konvertiert t-Wert zu tatsächlicher Uhrzeit"""
+            if t == 0:
+                return "21:00"
+            else:
+                # t=11 entspricht 10:00, t=10 entspricht 11:00, etc.
+                hour = 10 + (11 - t)
+                return f"{hour}:00 Uhr"
+
+        def add_state(t, b, s):
+            """Fügt einen Zustandsknoten hinzu mit Uhrzeitanzeige"""
+            node_id = f"t{t}_b{b}_s{s}"
+            hour = get_hour_from_t(t)
+
+            # Label mit Uhrzeit statt t-Wert
+            label = f"{hour}\\n(B={b}, S={s})"
+
+            if t == 0:
+                # Terminalknoten
+                if b >= self.min_baden and s >= self.min_sonnen:
+                    color = '#90EE90'  # Grün für perfekt
+                    label = label + f"\\n\\nPERFEKT"
+                else:
+                    color = '#FFB6C1'  # Rosa für nicht perfekt
+                    label = label + f"\\n\\nNICHT PERFEKT"
+            else:
+                # Entscheidungsknoten - Farbe basierend auf optimaler Aktion
+                action = self.policy[t][(b, s)]
+                color = action_colors.get(action, '#FFFFFF')
+                # Zeige auch die optimale Aktion im Label
+                label = label + f"\\n\\nπ* → {action}"
+
+            dot.node(node_id, label=label, fillcolor=color)
+            return node_id
+
+        def recurse(t, b, s):
+            """Rekursive Erstellung des Baums"""
+            # Begrenzungen prüfen
+            if t < 0 or b > self.max_realistic or s > self.max_realistic:
+                return
+
+            state_id = f"t{t}_b{b}_s{s}"
+            if state_id in visited:
+                return
+            visited.add(state_id)
+
+            current_node = add_state(t, b, s)
+
+            # Terminalzustand erreicht
+            if t == 0:
+                return
+
+            # Hole optimale Aktion für aktuellen Zustand
+            action = self.policy[t][(b, s)]
+
+            # Berechne korrekten Array-Index für Wahrscheinlichkeiten
+            hour_index = len(self.hours) - t
+
+            if action == "I":
+                # Imbiss: Zustand bleibt gleich
+                next_node = add_state(t - 1, b, s)
+                dot.edge(current_node, next_node, label="I (1.0)", color='darkgreen')
+                recurse(t - 1, b, s)
+
+            elif action == "B":
+                # Baden: Erfolg oder Misserfolg
+                p = self.p_B[hour_index]
+
+                # Erfolg: b erhöht sich
+                b_succ = min(b + 1, self.max_realistic)
+                next_succ = add_state(t - 1, b_succ, s)
+                dot.edge(current_node, next_succ,
+                         label=f"B✓({p:.2f})", color='darkgreen')
+                recurse(t - 1, b_succ, s)
+
+                # Misserfolg: Zustand bleibt gleich
+                next_fail = add_state(t - 1, b, s)
+                dot.edge(current_node, next_fail,
+                         label=f"B✗({1 - p:.2f})", color='red')
+                recurse(t - 1, b, s)
+
+            elif action == "S":
+                # Sonnen: Erfolg oder Misserfolg
+                p = self.p_S[hour_index]
+
+                # Erfolg: s erhöht sich
+                s_succ = min(s + 1, self.max_realistic)
+                next_succ = add_state(t - 1, b, s_succ)
+                dot.edge(current_node, next_succ,
+                         label=f"S✓({p:.2f})", color='darkgreen')
+                recurse(t - 1, b, s_succ)
+
+                # Misserfolg: Zustand bleibt gleich
+                next_fail = add_state(t - 1, b, s)
+                dot.edge(current_node, next_fail,
+                         label=f"S✗({1 - p:.2f})", color='red')
+                recurse(t - 1, b, s)
+
+        # Starte Rekursion vom Anfangszustand (t=11 = 10:00 Uhr, b=0, s=0)
+        recurse(11, 0, 0)
+
+        # Füge Titel hinzu
+        dot.attr(label='Ein Tag am See - Optimale Strategie\\n(10:00 - 21:00 Uhr)',
+                 fontsize='16', labelloc='t')
+
+        # Speichere die Visualisierung
+        dot.render(filename, format='png', cleanup=True)
+        print(f"Policy-Baum mit Uhrzeiten gespeichert als {filename}.png")
+
+        return dot
+
 
 def main():
     """Hauptfunktion - löst alle Aufgabenteile"""
@@ -275,6 +409,15 @@ def main():
 
     # Optional: Kompakte Strategieübersicht
     see.print_strategy_summary()
+
+    # Erstelle Visualisierung
+    print("\nErstelle Policy-Baum Visualisierung...")
+    try:
+        see.visualize_full_policy_tree()
+        print("✓ Policy-Baum erfolgreich erstellt!")
+    except Exception as e:
+        print(f"✗ Fehler bei der Visualisierung: {e}")
+        print("Hinweis: pip install graphviz")
 
 
 if __name__ == "__main__":

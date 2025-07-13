@@ -264,7 +264,7 @@ class EinTagAmSeeKorrekt:
             if state in self.policy[t]:
                 action = self.policy[t][state]
                 value = self.V[t][state]
-                print(f"{t}:00 Uhr - Aktion: {action} (Wert: {value:.2f})")
+                print(f"{hour}:00 Uhr - Aktion: {action} (Wert: {value:.2f})")
 
     def visualize_full_policy_tree(self, filename="full_optimal_policy_tree"):
         """

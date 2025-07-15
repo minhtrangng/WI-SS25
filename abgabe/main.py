@@ -26,7 +26,7 @@ class EinTagAmSeeKorrekt:
         # Realistische Obergrenze für erfolgreiche Aktionen
         self.max_realistic = 7
 
-        # Ergebnisse - korrekte Struktur
+        # Ergebnisse
         self.V = {}  # V[t][state] = Wert für Zustand 'state' in Stufe t
         self.policy = {}  # policy[t][state] = optimale Aktion für Zustand 'state' in Stufe t
 
@@ -149,12 +149,15 @@ class EinTagAmSeeKorrekt:
         return self.V[len(self.hours)][(0, 0)]
 
     def print_policy_compact(self):
-        """Gibt die optimale Strategie in kompakter Form aus - INKLUSIVE t=0"""
+        """
+        Gibt die optimale Strategie in kompakter Form aus - INKLUSIVE t=0
+        Zeigt für jeden Zustand die erwarteten Werte aller Aktionen
+        """
         print("Optimale Strategie (Stufe -> Zustand -> Aktion/Wert):")
         print("=" * 60)
 
         # Zeige ALLE Stufen von t=11 bis t=0
-        for t in range(len(self.hours), -1, -1):  # Jetzt bis -1, damit 0 inkludiert ist
+        for t in range(len(self.hours), -1, -1):
             if t == 0:
                 print(f"\nV_{t}(b,s) (Stufe t={t} -> 21:00 Uhr - TERMINAL):")
                 print("  Terminalwerte (keine Aktionen mehr möglich):")
@@ -170,15 +173,49 @@ class EinTagAmSeeKorrekt:
             else:
                 hour = self.hours[len(self.hours) - t]
                 print(f"\nV_{t}(b,s) (Stufe t={t} -> {hour}:00 Uhr):")
+                hour_index = len(self.hours) - t
 
-                # Zeige Aktionen und Werte
+                # Zeige Aktionen und Werte mit allen Expected Values
                 for b in range(min(4, self.max_realistic + 1)):
                     for s in range(min(4, self.max_realistic + 1)):
                         state = (b, s)
                         if state in self.policy[t]:
-                            action = self.policy[t][state]
-                            value = self.V[t][state]
-                            print(f"    (b={b}, s={s}): {action} (V={value:6.2f})")
+                            optimal_action = self.policy[t][state]
+                            optimal_value = self.V[t][state]
+
+                            print(f"    (b={b}, s={s}): {optimal_action} (V={optimal_value:6.2f})")
+
+                            # Berechne und zeige Expected Values für alle Aktionen
+                            action_values = {}
+                            for action in self.actions:
+                                expected_value = self._calculate_expected_value(
+                                    state, action, hour_index, t)
+                                action_values[action] = expected_value
+
+                            # Formatiere die Ausgabe
+                            values_str = ", ".join(
+                                [f"{action}={value:6.2f}" for action, value in action_values.items()])
+                            print(f"     ↳ {values_str}")
+
+    def _get_action_expected_values(self, state, t):
+        """
+        Hilfsmethode: Berechnet Expected Values für alle Aktionen in einem Zustand
+
+        Args:
+            state: (b, s) - aktueller Zustand
+            t: aktuelle Stufe
+
+        Returns:
+            Dictionary mit Expected Values für alle Aktionen
+        """
+        hour_index = len(self.hours) - t
+        action_values = {}
+
+        for action in self.actions:
+            expected_value = self._calculate_expected_value(state, action, hour_index, t)
+            action_values[action] = expected_value
+
+        return action_values
 
     def simulate_success_probability(self, num_simulations=100000):
         """

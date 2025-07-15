@@ -33,7 +33,7 @@ class EinTagAmSeeKorrekt:
     def _set_terminal_conditions(self):
         """
         Setzt die Terminalbedingungen für t=0 (21 Uhr)
-        Zustand: (b, s) - Anzahl erfolgreicher Bäder und Sonnenbäder
+        Zustand: (b, s) - Anzahl erfolgreiches Badens und Sonnenbadens
         """
         self.V[0] = {}
 
@@ -165,7 +165,7 @@ class EinTagAmSeeKorrekt:
                         state = (b, s)
                         if state in self.V[t]:
                             value = self.V[t][state]
-                            status = "PERFEKT" if value == 0 else "NICHT PERFEKT"
+                            status = "PERFEKT" if value == self.belohnung_perfekt else "NICHT PERFEKT"
                             print(f"    (b={b}, s={s}): V={value:4.0f} ({status})")
             else:
                 hour = self.hours[len(self.hours) - t]
@@ -193,8 +193,8 @@ class EinTagAmSeeKorrekt:
         count_perfect = 0
 
         for _ in range(num_simulations):
-            b = 0  # Anzahl erfolgreicher Bäder
-            s = 0  # Anzahl erfolgreicher Sonnenbäder
+            b = 0  # Anzahl erfolgreiches Badens
+            s = 0  # Anzahl erfolgreiches Sonnenbadens
 
             # Simuliere einen kompletten Tag
             for t in range(len(self.hours), 0, -1):
@@ -247,7 +247,7 @@ class EinTagAmSeeKorrekt:
         # Zusätzliche Analyse
         print(f"\nZUSÄTZLICHE ANALYSE:")
         print("-" * 20)
-        print(f"• Mindestanforderungen: {self.min_baden} Bäder + {self.min_sonnen} Sonnenbäder")
+        print(f"• Mindestanforderungen: {self.min_baden} Baden + {self.min_sonnen} Sonnenbaden")
         print(f"• Strafe für nicht-perfekten Tag: {self.strafe_nicht_perfekt}")
         print(f"• Anzahl Entscheidungsstufen: {len(self.hours)}")
         print(f"• Zustandsraum-Größe pro Stufe: {(self.max_realistic + 1) ** 2}")
@@ -257,14 +257,23 @@ class EinTagAmSeeKorrekt:
         print("\nSTRATEGIE-ZUSAMMENFASSUNG:")
         print("-" * 30)
 
-        # Analysiere Strategie für Startzustand
+        current_b, current_s = 0, 0
+
         for t in range(len(self.hours), 0, -1):
             hour = self.hours[len(self.hours) - t]
-            state = (0, 0)  # Startzustand
+            state = (current_b, current_s)
+
             if state in self.policy[t]:
                 action = self.policy[t][state]
                 value = self.V[t][state]
-                print(f"{hour}:00 Uhr - Aktion: {action} (Wert: {value:.2f})")
+
+                print(f"{hour}:00 Uhr - Zustand: (b={current_b}, s={current_s}) → Aktion: {action} (Wert: {value:.2f})")
+
+                # Aktualisiere Zustand bei Erfolg
+                if action == "B":
+                    current_b = min(current_b + 1, self.max_realistic)
+                elif action == "S":
+                    current_s = min(current_s + 1, self.max_realistic)
 
     def visualize_full_policy_tree(self, filename="full_optimal_policy_tree"):
         """
@@ -313,9 +322,10 @@ class EinTagAmSeeKorrekt:
             else:
                 # Entscheidungsknoten - Farbe basierend auf optimaler Aktion
                 action = self.policy[t][(b, s)]
+                value = self.V[t][(b, s)]
                 color = action_colors.get(action, '#FFFFFF')
                 # Zeige auch die optimale Aktion im Label
-                label = label + f"\\n\\nπ* → {action}"
+                label = label + f"\\n\\nπ* → {action}\\nV* = {value:.4f}"
 
             dot.node(node_id, label=label, fillcolor=color)
             return node_id

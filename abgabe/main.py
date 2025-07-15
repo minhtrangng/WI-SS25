@@ -33,7 +33,7 @@ class EinTagAmSeeKorrekt:
     def _set_terminal_conditions(self):
         """
         Setzt die Terminalbedingungen für t=0 (21 Uhr)
-        Zustand: (b, s) - Anzahl erfolgreiches Badens und Sonnenbadens
+        Zustand: (b, s) - Anzahl erfolgreichen Badens und Sonnenbadens
         """
         self.V[0] = {}
 
@@ -230,8 +230,8 @@ class EinTagAmSeeKorrekt:
         count_perfect = 0
 
         for _ in range(num_simulations):
-            b = 0  # Anzahl erfolgreiches Badens
-            s = 0  # Anzahl erfolgreiches Sonnenbadens
+            b = 0  # Anzahl erfolgreichen Badens
+            s = 0  # Anzahl erfolgreichen Sonnenbadens
 
             # Simuliere einen kompletten Tag
             for t in range(len(self.hours), 0, -1):
